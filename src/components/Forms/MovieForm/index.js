@@ -27,13 +27,10 @@ const MovieForm = ({ initialData, onCancel }) => {
   const createMovie = async (data) => {
     const payload = {
       ...data,
-      image: selectedFile?.path,
+      image: selectedFile?.filename,
     };
     try {
-      const { data, status } = await axios.post(
-        "http://localhost:3000/api/movie",
-        payload
-      );
+      const { data, status } = await axios.post(`/api/movie`, payload);
       if (data && status === 200) {
         toast.success(data?.message);
         reset();
@@ -46,9 +43,7 @@ const MovieForm = ({ initialData, onCancel }) => {
 
   const fetchMovieDetails = async () => {
     try {
-      const { data, status } = await axios.get(
-        `http://localhost:3000/api/movie?movieId=${movieId}`
-      );
+      const { data, status } = await axios.get(`/api/movie?movieId=${movieId}`);
 
       if (data && status === 200) {
         setMovieDetails(data);
@@ -61,11 +56,11 @@ const MovieForm = ({ initialData, onCancel }) => {
   const updateMovie = async (data) => {
     const payload = {
       ...data,
-      image: selectedFile?.path,
+      image: selectedFile?.filename,
     };
     try {
       const { data, status } = await axios.put(
-        `http://localhost:3000/api/movie?movieId=${movieId}`,
+        `/api/movie?movieId=${movieId}`,
         payload
       );
       if (data && status === 200) {
@@ -101,15 +96,11 @@ const MovieForm = ({ initialData, onCancel }) => {
       formData.append("image", file);
 
       try {
-        const { data, status } = await axios.post(
-          "http://localhost:3000/api/upload",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+        const { data, status } = await axios.post("/api/upload", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
 
         if (data && status === 200) {
           setSelectedFile(data?.file);
@@ -127,6 +118,40 @@ const MovieForm = ({ initialData, onCancel }) => {
     multiple: false,
   });
 
+  const renderDropzoneContent = () => {
+    if (uploading) {
+      return <p>Uploading...</p>;
+    }
+
+    if (isDragActive) {
+      return <p>Drop the image here...</p>;
+    }
+
+    if (selectedFile?.filename) {
+      return (
+        <div>
+          <img
+            src={`/api/images/${selectedFile?.filename}` || movieDetails?.image}
+            alt="Uploaded Preview"
+            style={{
+              width: "100%",
+              maxWidth: "300px",
+              marginBottom: "10px",
+            }}
+          />
+          <p>Drag and drop another image to replace</p>
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        <UploadImageIcon />
+        <p>Drop an image here</p>
+      </div>
+    );
+  };
+
   return (
     <MovieFormContainer>
       <h2>{movieId ? "Update Movie" : "Create a New Movie"}</h2>
@@ -142,29 +167,7 @@ const MovieForm = ({ initialData, onCancel }) => {
             }}
           >
             <input {...getInputProps()} />
-            {uploading ? (
-              <p>Uploading...</p>
-            ) : isDragActive ? (
-              <p>Drop the image here...</p>
-            ) : selectedFile?.path || movieDetails?.image ? (
-              <div>
-                <img
-                  src={selectedFile?.path || movieDetails?.image}
-                  alt="Uploaded Preview"
-                  style={{
-                    width: "100%",
-                    maxWidth: "300px",
-                    marginBottom: "10px",
-                  }}
-                />
-                <p>Drag and drop another image to replace</p>
-              </div>
-            ) : (
-              <div>
-                <UploadImageIcon />
-                <p>Drop an image here</p>
-              </div>
-            )}
+            {renderDropzoneContent()}
           </div>
 
           <div className="movie-info">

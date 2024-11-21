@@ -32,10 +32,7 @@ const SignInForm = () => {
       password: data?.password,
     };
     try {
-      const { data, status } = await axios.post(
-        "http://localhost:3000/api/login",
-        payload
-      );
+      const { data, status } = await axios.post(`/api/login`, payload);
       if (data && status === 200) {
         localStorage.setItem("moviesToken", data?.accessToken);
         localStorage.setItem("moviesData", JSON.stringify(data?.user));
